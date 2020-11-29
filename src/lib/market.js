@@ -50,6 +50,27 @@ module.exports.getCurrentPrice = function (resource, orderType) {
   return price
 }
 
+module.exports.createMarketSellOrder = function(resource, room, quantity, price) {
+  return Game.market.createOrder({
+      type: ORDER_SELL,
+      resourceType: resource,
+      price: price,
+      totalAmount: quantity,
+      roomName: room.name
+  })
+}
+
+module.exports.createMarketBuyOrder = function(resource, room, quantity, price) {
+  return Game.market.createOrder({
+      type: ORDER_BUY,
+      resourceType: resource,
+      price: price,
+      totalAmount: quantity,
+      roomName: room.name
+  })
+}
+
+
 module.exports.sellImmediately = function (resource, room, quantity) {
   return module.exports.transactImmediately(resource, room, quantity, ORDER_BUY)
 }
