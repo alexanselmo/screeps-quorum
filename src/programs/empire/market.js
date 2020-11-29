@@ -87,8 +87,32 @@ class EmpireMarket extends kernel.process {
         return
       }
 
+      let marketOrders = 0
+      //Get amount left in existing orders
+      for(let i in Game.market.orders) {
+          const order = Game.market.orders[i]
+          if (order.resourceType === resource && order.type === ORDER_SELL && order.active === true && order.roomName === terminal.room.name) {
+            marketOrders=+order.remainingAmount
+          }
+      }
+     
+      if(useableAmount - RESERVE_AMOUNT - marketOrders > 10000 && Game.market.credits > 5000) {
+          const quantity = useableAmount - RESERVE_AMOUNT - marketOrders
+          let price
+          //if today's volume is low, set to yesterday's avgPrice, otherwise use today's
+          if (Game.market.getHistory(resource)[Game.market.getHistory(resource).length-1].volume > quantity) {
+            price = Game.market.getHistory(resource)[Game.market.getHistory(resource).length-1].avgPrice
+          } else {
+            price = Game.market.getHistory(resource)[Game.market.getHistory(resource).length-2].avgPrice
+          }
+          Logger.log(`Creating Market Order for ${terminal.room.name} ${resource}: ${useableAmount - RESERVE_AMOUNT - marketOrders} Price: ${price}`)
+          qlib.market.createMarketOrder(resource, terminal.room, useableAmount - RESERVE_AMOUNT - marketOrders, price)
+          return
+      }
+      
+
       // Is there more than `buffer` amount?
-      if (useableAmount - RESERVE_AMOUNT > 100) {
+      if (useableAmount - RESERVE_AMOUNT > 100 && Game.market.credits < 5000) {
         qlib.market.sellImmediately(resource, terminal.room, useableAmount - RESERVE_AMOUNT)
         return
       }
