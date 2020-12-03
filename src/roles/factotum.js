@@ -130,19 +130,20 @@ class Factotum extends MetaRole {
       return
     }
 
-    if (feeders[0].mineralAmount > 0 && feeders[0].mineralType !== reaction[0]) {
+    if (feeders[0].store[feeders[0].mineralType] > 0 && feeders[0].mineralType !== reaction[0]) {
       creep.memory.labs = 'empty'
       return
     }
-    if (feeders[1].mineralAmount > 0 && feeders[1].mineralType !== reaction[1]) {
+    if (feeders[1].store[feeders[1].mineralType] > 0 && feeders[1].mineralType !== reaction[1]) {
       creep.memory.labs = 'empty'
       return
     }
 
     if (creep.store.getUsedCapacity() <= 0) {
-      if (feeders[0].mineralAmount / feeders[0].mineralCapacity >= 0.5) {
-        if (feeders[1].mineralAmount / feeders[1].mineralCapacity >= 0.5) {
+      if (feeders[0].store[feeders[0].mineralType] / feeders[0].mineralCapacity >= 0.5) {
+        if (feeders[1].store[feeders[1].mineralType] / feeders[1].mineralCapacity >= 0.5) {
           creep.memory.labs = 'empty'
+          return
         }
       }
     }
@@ -164,12 +165,12 @@ class Factotum extends MetaRole {
     }
 
     let primaryTargetAmount = Math.min(individualMax, reactionPrimaryAvailable, reactionSecondaryAvailable)
-    if (feeders[0].mineralAmount / feeders[0].mineralCapacity >= 0.5) {
+    if (feeders[0].store[feeders[0].mineralType] / feeders[0].mineralCapacity >= 0.5) {
       primaryTargetAmount = 0
     }
 
     let secondaryTargetAmount = Math.min(individualMax, reactionPrimaryAvailable, reactionSecondaryAvailable)
-    if (feeders[1].mineralAmount / feeders[1].mineralCapacity >= 0.5) {
+    if (feeders[1].store[feeders[1].mineralType] / feeders[1].mineralCapacity >= 0.5) {
       secondaryTargetAmount = 0
     }
 
@@ -182,7 +183,7 @@ class Factotum extends MetaRole {
       creep.memory.labs = 'empty'
       return
     }
-
+    Logger.log(`Checking creep.memory.filling ${creep.memory.filling}`)
     if (creep.memory.filling) {
       if (creep.store[reaction[0]] && feeders[0].canFill()) {
         if (creep.pos.isNearTo(feeders[0])) {
@@ -245,20 +246,20 @@ class Factotum extends MetaRole {
     const reaction = creep.room.getActiveReaction()
 
     // If one feeder doesn't have the right mineral and the other is empty then empty the first.
-    if (feeders[0].mineralAmount) {
-      if (feeders[1].mineralAmount < LAB_REACTION_AMOUNT && feeders[0].mineralType !== reaction[0]) {
+    if (feeders[0].store[feeders[0].mineralType]) {
+      if (feeders[1].store[feeders[1].mineralType] < LAB_REACTION_AMOUNT && feeders[0].mineralType !== reaction[0]) {
         return feeders[0]
       }
     }
-    if (feeders[1].mineralAmount) {
-      if (feeders[0].mineralAmount < LAB_REACTION_AMOUNT && feeders[1].mineralType !== reaction[1]) {
+    if (feeders[1].store[feeders[1].mineralType]) {
+      if (feeders[0].store[feeders[0].mineralType] < LAB_REACTION_AMOUNT && feeders[1].mineralType !== reaction[1]) {
         return feeders[1]
       }
     }
 
     // If feeders can not produce a reaction start emptying them.
     // Once one is empty the above code will finish the other.
-    if (feeders[0].mineralAmount > 0 && feeders[1].mineralAmount > 0) {
+    if (feeders[0].store[feeders[0].mineralType] > 0 && feeders[1].store[feeders[1].mineralType] > 0) {
       if (!REACTIONS[feeders[0].mineralType][feeders[1].mineralType]) {
         return feeders[0]
       }
@@ -267,7 +268,7 @@ class Factotum extends MetaRole {
     // Empty vats that don't have a boost that will work with the feeders, or that are filling up.
     const vats = creep.room.getVatLabs()
     let currentProduct = false
-    if (feeders[0].mineralAmount > 0 && feeders[1].mineralAmount > 0) {
+    if (feeders[0].store[feeders[0].mineralType] > 0 && feeders[1].store[feeders[1].mineralType] > 0) {
       currentProduct = REACTIONS[feeders[0].mineralType][feeders[1].mineralType]
     }
     Logger.log(`Reaction ${reaction}`)
@@ -281,8 +282,8 @@ class Factotum extends MetaRole {
       if ((!currentProduct || vat.mineralType !== currentProduct) && vat.mineralType !== desiredProduct) {
         return vat
       }
-      if (vat.mineralAmount > amount) {
-        amount = vat.mineralAmount
+      if (vat.store[vat.mineralType] > amount) {
+        amount = vat.store[vat.mineralType]
         target = vat
       }
     }
