@@ -143,7 +143,6 @@ class Factotum extends MetaRole {
       if (feeders[0].store[feeders[0].mineralType] / feeders[0].mineralCapacity >= 0.5) {
         if (feeders[1].store[feeders[1].mineralType] / feeders[1].mineralCapacity >= 0.5) {
           creep.memory.labs = 'empty'
-          return
         }
       }
     }
@@ -183,7 +182,6 @@ class Factotum extends MetaRole {
       creep.memory.labs = 'empty'
       return
     }
-    Logger.log(`Checking creep.memory.filling ${creep.memory.filling}`)
     if (creep.memory.filling) {
       if (creep.store[reaction[0]] && feeders[0].canFill()) {
         if (creep.pos.isNearTo(feeders[0])) {
@@ -247,12 +245,12 @@ class Factotum extends MetaRole {
 
     // If one feeder doesn't have the right mineral and the other is empty then empty the first.
     if (feeders[0].store[feeders[0].mineralType]) {
-      if (feeders[1].store[feeders[1].mineralType] < LAB_REACTION_AMOUNT && feeders[0].mineralType !== reaction[0]) {
+      if (feeders[1].store.getUsedCapacity(feeders[1].mineralType) < LAB_REACTION_AMOUNT && feeders[0].mineralType !== reaction[0]) {
         return feeders[0]
       }
     }
     if (feeders[1].store[feeders[1].mineralType]) {
-      if (feeders[0].store[feeders[0].mineralType] < LAB_REACTION_AMOUNT && feeders[1].mineralType !== reaction[1]) {
+      if (feeders[1].store.getUsedCapacity(feeders[0].mineralType) < LAB_REACTION_AMOUNT && feeders[1].mineralType !== reaction[1]) {
         return feeders[1]
       }
     }
