@@ -48,8 +48,8 @@ class CityMine extends kernel.process {
       if (mineId === false) {
         return this.suicide()
       }
-
-      if (this.data.mine === 'E14N43') {
+      
+      if (this.data.mine == 'E14N43') {
         this.room.removeMine(this.data.mine)
         return this.suicide()
       }
@@ -204,10 +204,10 @@ class CityMine extends kernel.process {
       }
     }
     if (!this.data.multiplier) {
-      this.data.multiplier = {}
+        this.data.multiplier = {}
     }
     if (this.data.mine && !this.data.multiplier[this.data.mine]) {
-      this.data.multiplier[this.data.mine] = 1.8
+       this.data.multiplier[this.data.mine] = 1.8
     }
     const distance = this.data.ssp[source.id] ? this.data.ssp[source.id] : 80
     if (!this.underAttack && !this.strictSpawning) {
@@ -216,8 +216,8 @@ class CityMine extends kernel.process {
       const carryAmount = Math.ceil(((distance * multiplier) * 20) / carryCost) * carryCost
       const maxEnergy = Math.min(carryCost * (MAX_CREEP_SIZE / 2), this.room.energyCapacityAvailable)
       let energy = (carryAmount / CARRY_CAPACITY) * carryCost // 50 carry == 1m1c == 100 energy
-      if (this.data.mine) {
-        // Logger.log(`mine: ${this.data.mine} carryAmount ${carryAmount} maxEnergy ${maxEnergy} energy ${energy} x:${this.data.multiplier[this.data.mine]}`)
+      if(this.data.mine) {
+        //Logger.log(`mine: ${this.data.mine} carryAmount ${carryAmount} maxEnergy ${maxEnergy} energy ${energy} x:${this.data.multiplier[this.data.mine]}`)
       }
       let quantity = 1
       if (energy > maxEnergy) {
@@ -229,11 +229,13 @@ class CityMine extends kernel.process {
       const respawnAge = respawnTime + (distance * 1.2)
       haulers.sizeCluster('hauler', quantity, { energy: energy, respawnAge: respawnAge })
     }
+    
+   let dataStorage = this.data
 
     haulers.forEach(function (hauler) {
       if (hauler.ticksToLive < (distance + 50)) {
         hauler.recycle()
-        return
+        return 
       }
       if (hauler.getCarryPercentage() > 0.8) {
         if (!hauler.pos.isNearTo(storage)) {
@@ -298,36 +300,37 @@ class CityMine extends kernel.process {
       return
     }
     try {
-      let attacker = this.mine.find(FIND_HOSTILE_CREEPS)[0]
-      const defenders = this.getCluster(`defender_${this.mine.name}`, this.room)
-      if (underAttack) {
-        defenders.sizeCluster('defender', 1)
-      }
-      defenders.forEach(defender => {
-        if (!attacker) {
-          // if no active threat, see if we can take down a core or leftover spawn
-          attacker = this.mine.find(FIND_HOSTILE_STRUCTURES)[0]
+        let attacker = this.mine.find(FIND_HOSTILE_CREEPS)[0]
+       const defenders = this.getCluster(`defender_${this.mine.name}`, this.room) 
+        if(underAttack) {
+            defenders.sizeCluster('defender', 1)
         }
-        if (!attacker) {
-          defender.travelTo(this.mine)
-          Logger.log('Mine Travel ' + this.mine.name)
-        }
-        if (defender.hits < defender.hitsMax * 0.45) {
-          defender.heal(defender)
-          Logger.log('Healing')
-        } else if (!defender.pos.isNearTo(attacker)) {
-          Logger.log(`${attacker.room}`)
-          Logger.log('Attacker Travel')
-          defender.travelTo(attacker)
-        } else {
-          defender.attack(attacker)
-        }
-        if (defender.pos.getRangeTo(attacker) < 4) {
-          defender.rangedAttack(attacker)
-        }
-      })
-    } catch (e) {
-      Logger.log(`defend err: ${e}`)
+        defenders.forEach( defender => {
+            
+            if (!attacker) {
+                //if no active threat, see if we can take down a core or leftover spawn
+                attacker = this.mine.find(FIND_HOSTILE_STRUCTURES)[0]
+            }
+            if(!attacker) {
+                defender.travelTo(this.mine)
+                Logger.log("Mine Travel " + this.mine.name)
+            } 
+            if(defender.hits < defender.hitsMax*.45) {
+                defender.heal(defender)
+                Logger.log("Healing")
+            } else if(!defender.pos.isNearTo(attacker)) {
+                Logger.log(`${attacker.room}`)
+                Logger.log("Attacker Travel")
+                defender.travelTo(attacker)
+            } else {
+                defender.attack(attacker)
+            }
+            if(defender.pos.getRangeTo(attacker) < 4) {
+                defender.rangedAttack(attacker)
+            }
+        })
+    } catch(e) {
+        Logger.log(`defend err: ${e}`)
     }
     this.recordAggression()
   }
