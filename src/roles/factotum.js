@@ -55,12 +55,12 @@ class Factotum extends MetaRole {
       return
     }
 
-    // if (terminal && terminal.store[RESOURCE_ENERGY] > TERMINAL_ENERGY) {
-    //   const overflow = terminal.store[RESOURCE_ENERGY] - TERMINAL_ENERGY
-    //   const transferAmount = overflow < creep.store.getCapacity() ? overflow : creep.store.getCapacity()
-    //   creep.withdraw(terminal, RESOURCE_ENERGY, transferAmount)
-    //   return
-    // }
+    if (terminal && terminal.store[RESOURCE_ENERGY] > TERMINAL_ENERGY) {
+      const overflow = terminal.store[RESOURCE_ENERGY] - TERMINAL_ENERGY
+      const transferAmount = overflow < creep.store.getCapacity() ? overflow : creep.store.getCapacity()
+      creep.withdraw(terminal, RESOURCE_ENERGY, transferAmount)
+      return
+    }
 
     // pick up dropped resources and creep renewal energy and empty tombstones
     const suicideBooth = creep.room.getSuicideBooth()
@@ -123,18 +123,18 @@ class Factotum extends MetaRole {
   fillFeeders (creep) {
     const reaction = creep.room.getActiveReaction()
     const feeders = creep.room.getFeederLabs()
-    Logger.log(`fillFeeders: ${reaction} -> ${feeders}`)
+
     if (!reaction || !feeders || feeders.length < 2) {
       delete creep.memory.labs
       delete creep.memory.filling
       return
     }
 
-    if (feeders[0].store[feeders[0].mineralType] > 0 && feeders[0].mineralType !== reaction[0]) {
+    if (feeders[0].mineralType && feeders[0].mineralType !== reaction[0]) {
       creep.memory.labs = 'empty'
       return
     }
-    if (feeders[1].store[feeders[1].mineralType] > 0 && feeders[1].mineralType !== reaction[1]) {
+    if (feeders[1].mineralType && feeders[1].mineralType !== reaction[1]) {
       creep.memory.labs = 'empty'
       return
     }
@@ -228,6 +228,7 @@ class Factotum extends MetaRole {
       return
     }
     const lab = this.getLabToEmpty(creep)
+    Logger.log(`Lab to empty ${lab}`)
     if (!lab) {
       delete creep.memory.labs
       return
@@ -244,13 +245,16 @@ class Factotum extends MetaRole {
     const reaction = creep.room.getActiveReaction()
 
     // If one feeder doesn't have the right mineral and the other is empty then empty the first.
+    Logger.log(`Emptying Fillers`)
+    Logger.log(`feeders[0].store[feeders[0].mineralType] ${feeders[0].store[feeders[0].mineralType]}`)
     if (feeders[0].store[feeders[0].mineralType]) {
-      if (feeders[1].store.getUsedCapacity(feeders[1].mineralType) < LAB_REACTION_AMOUNT && feeders[0].mineralType !== reaction[0]) {
+      if ((!feeders[1].mineralType || feeders[1].store.getUsedCapacity(feeders[1].mineralType) < LAB_REACTION_AMOUNT) && feeders[0].mineralType !== reaction[0]) {
         return feeders[0]
       }
     }
+    Logger.log(`feeders[1].store[feeders[1].mineralType] ${feeders[1].store[feeders[1].mineralType]}`)
     if (feeders[1].store[feeders[1].mineralType]) {
-      if (feeders[1].store.getUsedCapacity(feeders[0].mineralType) < LAB_REACTION_AMOUNT && feeders[1].mineralType !== reaction[1]) {
+      if ((!feeders[0].mineralType || feeders[0].store.getUsedCapacity(feeders[0].mineralType) < LAB_REACTION_AMOUNT) && feeders[1].mineralType !== reaction[1]) {
         return feeders[1]
       }
     }
